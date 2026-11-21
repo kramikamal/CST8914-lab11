@@ -11,20 +11,45 @@
 
 const accordionBtns = document.querySelectorAll(".accordion");
 
-accordionBtns.forEach((accordion) => {
+accordionBtns.forEach((accordion, index) => {
   accordion.onclick = function () {
     this.classList.toggle("is-open");
 
     let content = this.nextElementSibling;
-    console.log(content);
 
-    if (content.style.maxHeight) {
+    if (this.getAttribute("aria-expanded") === "true") {
       //this is if the accordion is open
+      // I set aria-expanded to false and hide the content, so the screen reader says "collapsed" and does not read the hidden text
+      this.setAttribute("aria-expanded", "false");
       content.style.maxHeight = null;
+      content.hidden = true;
     } else {
       //if the accordion is currently closed
+      // I set aria-expanded to true and show the content, so the screen reader says "expanded"
+      this.setAttribute("aria-expanded", "true");
+      content.hidden = false;
       content.style.maxHeight = content.scrollHeight + "px";
-      console.log(content.style.maxHeight);
     }
   };
+
+  // I added the keyboard interaction from the ARIA accordion pattern:
+  // Down Arrow and Up Arrow move to the next or previous accordion button, Home goes to the first one and End goes to the last one
+  accordion.addEventListener("keydown", function (event) {
+    let newIndex = null;
+
+    if (event.key === "ArrowDown") {
+      newIndex = (index + 1) % accordionBtns.length;
+    } else if (event.key === "ArrowUp") {
+      newIndex = (index - 1 + accordionBtns.length) % accordionBtns.length;
+    } else if (event.key === "Home") {
+      newIndex = 0;
+    } else if (event.key === "End") {
+      newIndex = accordionBtns.length - 1;
+    }
+
+    if (newIndex !== null) {
+      event.preventDefault();
+      accordionBtns[newIndex].focus();
+    }
+  });
 });
